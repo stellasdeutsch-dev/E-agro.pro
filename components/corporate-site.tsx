@@ -42,10 +42,10 @@ const photos = {
     UNSPLASH("1554260570-9140fd3b7614")     // corporate / direct B2B
   ],
   categories: [
-    UNSPLASH("1500076656116-558758c991c1"), // tractor
-    UNSPLASH("1535713875002-d1d0cf377fde"), // irrigation
-    UNSPLASH("1530836369250-ef72a3f5cda8"), // greenhouse
-    UNSPLASH("1568526381923-caf3fd520382")  // silo / processing
+    UNSPLASH("1594771804886-a933bb2d609b"), // green tractor with hay baler in golden field
+    UNSPLASH("1692369584496-3216a88f94c1"), // center pivot irrigation over green corn field
+    UNSPLASH("1591754060004-f91c95f5cf05"), // industrial greenhouse interior with grow lights
+    UNSPLASH("1684607961356-1d99dc31aee2")  // row of grain storage silos
   ],
   team: [
     "from-emerald-500 to-teal-600",
