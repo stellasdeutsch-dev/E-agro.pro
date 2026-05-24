@@ -5,30 +5,24 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useScroll, useSpring, useInView, animate, useMotionValue } from "framer-motion";
 import {
   ArrowRight,
-  Award,
-  Briefcase,
-  CalendarDays,
   Calculator,
   CheckCircle2,
   Droplets,
-  GraduationCap,
-  Landmark,
-  Lightbulb,
+  Globe2,
   Linkedin,
   Mail,
   Menu,
   PackageOpen,
   Phone,
+  Rocket,
   Search,
   ShieldCheck,
   Sparkles,
   Sprout,
   Tractor,
-  Truck,
   User,
   X,
-  XCircle,
-  Zap
+  XCircle
 } from "lucide-react";
 
 type Lang = "tr" | "en" | "ru";
@@ -38,15 +32,15 @@ const UNSPLASH = (id: string, w = 800) =>
 
 const photos = {
   howItWorks: [
-    UNSPLASH("1574943320219-89283bb9e207"), // catalog / tablet
-    UNSPLASH("1450101499163-c8848c66ca85"), // handshake / verification
-    UNSPLASH("1554260570-9140fd3b7614")     // direct B2B / finance
+    UNSPLASH("1466692476868-aef1dfb1e735"), // aerial farmland — catalog overview
+    UNSPLASH("1450101499163-c8848c66ca85"), // handshake — verification
+    UNSPLASH("1554260570-9140fd3b7614")     // corporate / direct B2B
   ],
   categories: [
     UNSPLASH("1500076656116-558758c991c1"), // tractor
     UNSPLASH("1535713875002-d1d0cf377fde"), // irrigation
     UNSPLASH("1530836369250-ef72a3f5cda8"), // greenhouse
-    UNSPLASH("1592152328670-1ad14fbecaab")  // processing / silo
+    UNSPLASH("1568526381923-caf3fd520382")  // silo / processing
   ],
   team: [
     "from-emerald-500 to-teal-600",
@@ -58,6 +52,7 @@ const photos = {
 
 const marketFlags: Record<string, string> = {
   Турция: "🇹🇷", Turkey: "🇹🇷", Türkiye: "🇹🇷",
+  Азербайджан: "🇦🇿", Azerbaijan: "🇦🇿", Azerbaycan: "🇦🇿",
   Казахстан: "🇰🇿", Kazakhstan: "🇰🇿", Kazakistan: "🇰🇿",
   Узбекистан: "🇺🇿", Uzbekistan: "🇺🇿", Özbekistan: "🇺🇿",
   Кыргызстан: "🇰🇬", Kyrgyzstan: "🇰🇬", Kırgızistan: "🇰🇬",
@@ -69,6 +64,7 @@ const marketFlags: Record<string, string> = {
 
 const marketKpis: Record<string, string> = {
   "🇹🇷": "$1.2B export",
+  "🇦🇿": "$140M demand",
   "🇰🇿": "$320M import",
   "🇺🇿": "$280M import",
   "🇰🇬": "$90M import",
@@ -78,13 +74,11 @@ const marketKpis: Record<string, string> = {
   "🇨🇳": "$1.8B supply"
 };
 
-const roadmapProgress = [0.78, 0.22, 0.05, 0];
-
-// ============ COPY (positioning v3 — Info Intermediary + Direct SWIFT) ============
+// ============ COPY ============
 
 const copy = {
   ru: {
-    nav: ["Как работает", "Категории", "Рынки", "Карьера", "Контакты"],
+    nav: ["Как работает", "Категории", "Рынки", "Roadmap", "Контакты"],
     cta: "Связаться",
     heroBadge: "MVP Live · Алматы и Анталья",
     heroTitle: "Тракторы напрямую с турецких заводов. На 40% дешевле.",
@@ -98,13 +92,12 @@ const copy = {
       howSub: "Три шага между вами и заводом",
       categories: "Что продаём",
       categoriesSub: "Только тяжёлое оборудование. Никакой химии, дронов и санкционных рисков.",
-      proof: "Тракция",
       markets: "Где работаем",
+      marketsSub: "Тюркский коридор сейчас. Глобальная экспансия — следующий шаг.",
       calculator: "Сколько вы сэкономите?",
       calculatorSub: "Подвиньте слайдер — увидите экономию через прямую закупку.",
-      roadmap: "Куда идём",
-      career: "E-AGRO PRO Carrier",
-      careerSub: "Мост между университетами агросектора и работодателями региона.",
+      roadmap: "Дорожная карта 2026 — 2029",
+      roadmapSub: "От тюркского коридора до глобальной экосистемы аграрной торговли.",
       investor: "Открытый раунд · Информационный посредник",
       team: "Команда",
       finalTitle: "С чего начнём?"
@@ -131,18 +124,70 @@ const copy = {
       { value: 40, label: "средняя экономия", suffix: "%" },
       { value: 0, label: "посредников между вами и заводом", suffix: "" }
     ],
-    markets: ["Турция", "Казахстан", "Узбекистан", "Кыргызстан", "Россия", "Саудовская Аравия", "ОАЭ", "Китай"],
+    marketsTurkicTitle: "Тюркский коридор · 2026 — 2028",
+    marketsGlobalTitle: "Глобальная экспансия · 2029 +",
+    marketsTurkic: ["Турция", "Азербайджан", "Казахстан", "Узбекистан", "Кыргызстан"],
+    marketsGlobal: ["Китай", "Саудовская Аравия", "ОАЭ", "Россия"],
+    corridor: "Турция → Азербайджан → Казахстан → Узбекистан → Кыргызстан",
+    corridorTitle: "Активный коридор · Тюркский мир",
+    corridorHint: "Наведите на узел",
+    corridorHubLabel: "Хаб",
+    corridorNodes: {
+      ist: { name: "Турция", detail: "Анталья · Бурса · Измир — заводы-партнёры" },
+      bak: { name: "Азербайджан", detail: "Баку — логистический хаб" },
+      alm: { name: "Казахстан", detail: "Алматы · Астана — операционные центры" },
+      tas: { name: "Узбекистан", detail: "Ташкент · Самарканд — растущий спрос" },
+      bis: { name: "Кыргызстан", detail: "Бишкек — региональный покупатель" }
+    },
     roadmap: [
-      ["2025–26", "MVP + 100 заводов"],
-      ["2026", "Verified Supplier · подписки"],
-      ["2027", "Trade Finance · Китай"],
-      ["2028", "MENA · Series B"]
-    ],
-    career: [
-      ["Career Center", "Вакансии Full-time, стажировки и волонтёры на выставках."],
-      ["Education Hub", "Бесплатные модули по ВЭД + платные курсы с сертификатами."],
-      ["Innovation Showcase", "Витрина студенческих стартапов и патентов в агротехе."],
-      ["Events Calendar", "Календарь выставок и форумов в Турции и Центральной Азии."]
+      {
+        year: "2026",
+        phase: "Фундамент",
+        tag: "Бесплатный каталог",
+        progress: 0.22,
+        bullets: [
+          "MVP с каталогом 100+ верифицированных заводов",
+          "KYB-аудит и санкционный скрининг UN/EU/OFAC",
+          "Запуск тюркского коридора (🇹🇷🇦🇿🇰🇿🇺🇿🇰🇬)",
+          "Офисы Анталья и Алматы"
+        ]
+      },
+      {
+        year: "2027",
+        phase: "Монетизация",
+        tag: "Подписки + Verified",
+        progress: 0.05,
+        bullets: [
+          "Тарифы Silver $250 / Gold $1000 / Diamond $2000",
+          "Verified Supplier бейджи и рейтинги",
+          "White Glove сервис для KOBİ",
+          "Sales-офис в Ташкенте"
+        ]
+      },
+      {
+        year: "2028",
+        phase: "Масштаб",
+        tag: "Trade Finance",
+        progress: 0,
+        bullets: [
+          "Эскроу-комиссия и BNPL-факторинг",
+          "API логистики (CDEK, Turkish Cargo, AsstrA)",
+          "Control Tower для отслеживания грузов",
+          "Полная операция в тюркском мире"
+        ]
+      },
+      {
+        year: "2029",
+        phase: "Глобальная экспансия",
+        tag: "Series A · Data",
+        progress: 0,
+        bullets: [
+          "🇨🇳 Joint Venture с Alibaba — выход в Китай",
+          "🇸🇦🇦🇪 MENA: Эр-Рияд, ОАЭ, арабская версия",
+          "🇷🇺 Россия и СНГ",
+          "Series A $3-5M @ $50M оценка"
+        ]
+      }
     ],
     investorPills: ["Seed $470K", "Runway 24 мес", "$5.5M GMV target", "Safe Harbor model"],
     investorCta: "Запросить deck",
@@ -154,8 +199,7 @@ const copy = {
     ],
     personas: [
       { label: "Я ищу технику", href: "#calculator" },
-      { label: "Я завод", href: "#contacts" },
-      { label: "Я инвестор", href: "#investor" }
+      { label: "Я завод", href: "#calculator" }
     ],
     calculator: {
       volumeLabel: "Годовой объём закупок",
@@ -165,12 +209,13 @@ const copy = {
       currentLabel: "Маржа посредников",
       savingsLabel: "Ваша экономия в год",
       ctaLabel: "Полный отчёт",
+      liveLabel: "Живой расчёт",
       steps: ["Расчёт", "Профиль", "Контакты"],
       stepHeaders: ["Подвиньте слайдер", "Кто вы?", "Куда отправить?"],
       roleLabel: "Роль",
       roles: ["Покупатель", "Завод", "Дилер", "Инвестор"],
       countryLabel: "Страна",
-      countries: ["Казахстан", "Узбекистан", "Турция", "Россия", "ОАЭ", "Китай", "Другое"],
+      countries: ["Казахстан", "Узбекистан", "Турция", "Азербайджан", "Россия", "ОАЭ", "Китай", "Другое"],
       nameLabel: "Имя и компания",
       emailLabel: "Корпоративная почта",
       phoneLabel: "WhatsApp / телефон",
@@ -178,20 +223,19 @@ const copy = {
       back: "Назад",
       submit: "Отправить",
       successTitle: "Готово.",
-      successText: "Полный отчёт придёт на info@e-agro.pro в течение 24 часов."
+      successText: "Полный отчёт придёт на info@e-agro.pro в течение 24 часов.",
+      ofProcurement: "от годовой закупки"
     },
     footer: {
       tagline: "Информационный посредник между турецкими заводами и покупателями СНГ/MENA.",
       copyright: "© 2026 E-AGRO PRO · TECHNOEXPORT LLC"
     },
-    heroCardRegion: "Турция / СНГ / MENA",
+    heroCardRegion: "Турция / Тюркский мир",
     heroCardTitle: "Verified · Hard Goods",
-    corridorTitle: "Торговый коридор",
-    corridorCaption: "Турция → Алматы → Ташкент → Дубай → Эр-Рияд → Пекин",
-    corridorHint: "Наведите на узел"
+    liveRfqLabel: "Заявка"
   },
   en: {
-    nav: ["How it works", "Categories", "Markets", "Career", "Contact"],
+    nav: ["How it works", "Categories", "Markets", "Roadmap", "Contact"],
     cta: "Contact",
     heroBadge: "MVP Live · Almaty & Antalya",
     heroTitle: "Tractors direct from Turkish factories. 40% cheaper.",
@@ -205,13 +249,12 @@ const copy = {
       howSub: "Three steps between you and the factory",
       categories: "What we sell",
       categoriesSub: "Hardware only. No chemistry, drones, or sanctions risk.",
-      proof: "Traction",
       markets: "Where we operate",
+      marketsSub: "Turkic corridor today. Global expansion next.",
       calculator: "How much you save",
       calculatorSub: "Drag the slider — see your savings from direct procurement.",
-      roadmap: "Roadmap",
-      career: "E-AGRO PRO Carrier",
-      careerSub: "Bridge between agri-universities and regional employers.",
+      roadmap: "Roadmap 2026 — 2029",
+      roadmapSub: "From Turkic corridor to global agricultural-trade ecosystem.",
       investor: "Open round · Information Intermediary",
       team: "Team",
       finalTitle: "Where do we start?"
@@ -238,18 +281,70 @@ const copy = {
       { value: 40, label: "average saving", suffix: "%" },
       { value: 0, label: "intermediaries between you and the factory", suffix: "" }
     ],
-    markets: ["Turkey", "Kazakhstan", "Uzbekistan", "Kyrgyzstan", "Russia", "Saudi Arabia", "UAE", "China"],
+    marketsTurkicTitle: "Turkic corridor · 2026 — 2028",
+    marketsGlobalTitle: "Global expansion · 2029 +",
+    marketsTurkic: ["Turkey", "Azerbaijan", "Kazakhstan", "Uzbekistan", "Kyrgyzstan"],
+    marketsGlobal: ["China", "Saudi Arabia", "UAE", "Russia"],
+    corridor: "Turkey → Azerbaijan → Kazakhstan → Uzbekistan → Kyrgyzstan",
+    corridorTitle: "Active corridor · Turkic world",
+    corridorHint: "Hover a node",
+    corridorHubLabel: "Hub",
+    corridorNodes: {
+      ist: { name: "Turkey", detail: "Antalya · Bursa · İzmir — factory partners" },
+      bak: { name: "Azerbaijan", detail: "Baku — logistics hub" },
+      alm: { name: "Kazakhstan", detail: "Almaty · Astana — operations centers" },
+      tas: { name: "Uzbekistan", detail: "Tashkent · Samarkand — rising demand" },
+      bis: { name: "Kyrgyzstan", detail: "Bishkek — regional buyer" }
+    },
     roadmap: [
-      ["2025–26", "MVP + 100 factories"],
-      ["2026", "Verified Supplier · subscriptions"],
-      ["2027", "Trade Finance · China"],
-      ["2028", "MENA · Series B"]
-    ],
-    career: [
-      ["Career Center", "Full-time jobs, internships, and exhibition volunteers."],
-      ["Education Hub", "Free intro modules + paid pro courses with certificates."],
-      ["Innovation Showcase", "Student startups and patents in agritech."],
-      ["Events Calendar", "Industry exhibitions and forums in Turkey & Central Asia."]
+      {
+        year: "2026",
+        phase: "Foundation",
+        tag: "Free catalog",
+        progress: 0.22,
+        bullets: [
+          "MVP with catalog of 100+ verified factories",
+          "KYB audit and sanctions screening UN/EU/OFAC",
+          "Launch of Turkic corridor (🇹🇷🇦🇿🇰🇿🇺🇿🇰🇬)",
+          "Offices in Antalya and Almaty"
+        ]
+      },
+      {
+        year: "2027",
+        phase: "Monetization",
+        tag: "Subscriptions + Verified",
+        progress: 0.05,
+        bullets: [
+          "Tariffs Silver $250 / Gold $1000 / Diamond $2000",
+          "Verified Supplier badges and ratings",
+          "White Glove service for SMEs",
+          "Sales office in Tashkent"
+        ]
+      },
+      {
+        year: "2028",
+        phase: "Scale",
+        tag: "Trade Finance",
+        progress: 0,
+        bullets: [
+          "Escrow commission and BNPL factoring",
+          "Logistics API (CDEK, Turkish Cargo, AsstrA)",
+          "Control Tower for shipment tracking",
+          "Full operations in Turkic world"
+        ]
+      },
+      {
+        year: "2029",
+        phase: "Global expansion",
+        tag: "Series A · Data",
+        progress: 0,
+        bullets: [
+          "🇨🇳 Joint Venture with Alibaba — entry into China",
+          "🇸🇦🇦🇪 MENA: Riyadh, UAE, Arabic version",
+          "🇷🇺 Russia and CIS",
+          "Series A $3-5M @ $50M valuation"
+        ]
+      }
     ],
     investorPills: ["Seed $470K", "24-month runway", "$5.5M GMV target", "Safe Harbor model"],
     investorCta: "Request the deck",
@@ -261,8 +356,7 @@ const copy = {
     ],
     personas: [
       { label: "I'm a buyer", href: "#calculator" },
-      { label: "I'm a factory", href: "#contacts" },
-      { label: "I'm an investor", href: "#investor" }
+      { label: "I'm a factory", href: "#calculator" }
     ],
     calculator: {
       volumeLabel: "Annual procurement volume",
@@ -272,12 +366,13 @@ const copy = {
       currentLabel: "Intermediary margin",
       savingsLabel: "Your annual savings",
       ctaLabel: "Full report",
+      liveLabel: "Live calculator",
       steps: ["Calculate", "Profile", "Contact"],
       stepHeaders: ["Drag the slider", "Who are you?", "Where to send?"],
       roleLabel: "Role",
       roles: ["Buyer", "Factory", "Dealer", "Investor"],
       countryLabel: "Country",
-      countries: ["Kazakhstan", "Uzbekistan", "Turkey", "Russia", "UAE", "China", "Other"],
+      countries: ["Kazakhstan", "Uzbekistan", "Turkey", "Azerbaijan", "Russia", "UAE", "China", "Other"],
       nameLabel: "Name & company",
       emailLabel: "Corporate email",
       phoneLabel: "WhatsApp / phone",
@@ -285,20 +380,19 @@ const copy = {
       back: "Back",
       submit: "Send",
       successTitle: "Done.",
-      successText: "Your full report will arrive at info@e-agro.pro within 24 hours."
+      successText: "Your full report will arrive at info@e-agro.pro within 24 hours.",
+      ofProcurement: "of annual procurement"
     },
     footer: {
       tagline: "Information intermediary between Turkish factories and CIS/MENA buyers.",
       copyright: "© 2026 E-AGRO PRO · TECHNOEXPORT LLC"
     },
-    heroCardRegion: "Turkey / CIS / MENA",
+    heroCardRegion: "Turkey / Turkic world",
     heroCardTitle: "Verified · Hard Goods",
-    corridorTitle: "Trade corridor",
-    corridorCaption: "Turkey → Almaty → Tashkent → Dubai → Riyadh → Beijing",
-    corridorHint: "Hover a node"
+    liveRfqLabel: "Live RFQ"
   },
   tr: {
-    nav: ["Nasıl çalışır", "Kategoriler", "Pazarlar", "Kariyer", "İletişim"],
+    nav: ["Nasıl çalışır", "Kategoriler", "Pazarlar", "Yol Haritası", "İletişim"],
     cta: "İletişim",
     heroBadge: "MVP Yayında · Almatı & Antalya",
     heroTitle: "Traktörler doğrudan Türk fabrikalarından. %40 daha ucuz.",
@@ -312,13 +406,12 @@ const copy = {
       howSub: "Sizinle fabrika arasında üç adım",
       categories: "Ne satıyoruz",
       categoriesSub: "Sadece ağır ekipman. Kimyasal, drone veya yaptırım riski yok.",
-      proof: "Traksiyon",
       markets: "Nerede faaliyetteyiz",
+      marketsSub: "Bugün Türk koridoru. Sonraki adım global açılım.",
       calculator: "Ne kadar tasarruf?",
       calculatorSub: "Slider'ı sürükleyin — doğrudan tedarikten tasarrufu görün.",
-      roadmap: "Yol haritası",
-      career: "E-AGRO PRO Carrier",
-      careerSub: "Tarım üniversiteleri ile bölge işverenleri arasında köprü.",
+      roadmap: "Yol Haritası 2026 — 2029",
+      roadmapSub: "Türk koridorundan global tarım ticaret ekosistemine.",
       investor: "Açık tur · Bilgi Aracısı",
       team: "Ekip",
       finalTitle: "Nereden başlayalım?"
@@ -345,18 +438,70 @@ const copy = {
       { value: 40, label: "ortalama tasarruf", suffix: "%" },
       { value: 0, label: "sizinle fabrika arasında aracı", suffix: "" }
     ],
-    markets: ["Türkiye", "Kazakistan", "Özbekistan", "Kırgızistan", "Rusya", "Suudi Arabistan", "BAE", "Çin"],
+    marketsTurkicTitle: "Türk koridoru · 2026 — 2028",
+    marketsGlobalTitle: "Global açılım · 2029 +",
+    marketsTurkic: ["Türkiye", "Azerbaycan", "Kazakistan", "Özbekistan", "Kırgızistan"],
+    marketsGlobal: ["Çin", "Suudi Arabistan", "BAE", "Rusya"],
+    corridor: "Türkiye → Azerbaycan → Kazakistan → Özbekistan → Kırgızistan",
+    corridorTitle: "Aktif koridor · Türk dünyası",
+    corridorHint: "Düğüme gelin",
+    corridorHubLabel: "Hub",
+    corridorNodes: {
+      ist: { name: "Türkiye", detail: "Antalya · Bursa · İzmir — fabrika partnerleri" },
+      bak: { name: "Azerbaycan", detail: "Bakü — lojistik merkezi" },
+      alm: { name: "Kazakistan", detail: "Almatı · Astana — operasyon merkezleri" },
+      tas: { name: "Özbekistan", detail: "Taşkent · Semerkant — büyüyen talep" },
+      bis: { name: "Kırgızistan", detail: "Bişkek — bölgesel alıcı" }
+    },
     roadmap: [
-      ["2025–26", "MVP + 100 fabrika"],
-      ["2026", "Verified Supplier · abonelik"],
-      ["2027", "Trade Finance · Çin"],
-      ["2028", "MENA · Series B"]
-    ],
-    career: [
-      ["Career Center", "Tam zamanlı iş, staj ve fuar gönüllüleri."],
-      ["Education Hub", "Ücretsiz giriş modülleri + sertifikalı profesyonel kurslar."],
-      ["Innovation Showcase", "Tarım teknolojisinde öğrenci startup'ları ve patentler."],
-      ["Events Calendar", "Türkiye ve Orta Asya'da sektör fuarları ve forumlar."]
+      {
+        year: "2026",
+        phase: "Temel",
+        tag: "Ücretsiz katalog",
+        progress: 0.22,
+        bullets: [
+          "100+ doğrulanmış fabrika ile MVP kataloğu",
+          "KYB denetimi ve UN/EU/OFAC yaptırım taraması",
+          "Türk koridorunun lansmanı (🇹🇷🇦🇿🇰🇿🇺🇿🇰🇬)",
+          "Antalya ve Almatı ofisleri"
+        ]
+      },
+      {
+        year: "2027",
+        phase: "Monetizasyon",
+        tag: "Abonelik + Verified",
+        progress: 0.05,
+        bullets: [
+          "Tarifeler Silver $250 / Gold $1000 / Diamond $2000",
+          "Verified Supplier rozetleri ve puanlama",
+          "KOBİ için White Glove hizmeti",
+          "Taşkent'te satış ofisi"
+        ]
+      },
+      {
+        year: "2028",
+        phase: "Ölçeklenme",
+        tag: "Trade Finance",
+        progress: 0,
+        bullets: [
+          "Escrow komisyonu ve BNPL faktoring",
+          "Lojistik API (CDEK, Turkish Cargo, AsstrA)",
+          "Sevkiyat takibi için Control Tower",
+          "Türk dünyasında tam operasyon"
+        ]
+      },
+      {
+        year: "2029",
+        phase: "Global açılım",
+        tag: "Series A · Data",
+        progress: 0,
+        bullets: [
+          "🇨🇳 Alibaba ile Joint Venture — Çin'e giriş",
+          "🇸🇦🇦🇪 MENA: Riyad, BAE, Arapça versiyon",
+          "🇷🇺 Rusya ve BDT",
+          "Series A $3-5M @ $50M değerleme"
+        ]
+      }
     ],
     investorPills: ["Seed $470K", "24 aylık runway", "$5.5M GMV hedef", "Safe Harbor model"],
     investorCta: "Deck'i talep edin",
@@ -368,8 +513,7 @@ const copy = {
     ],
     personas: [
       { label: "Alıcıyım", href: "#calculator" },
-      { label: "Fabrikayım", href: "#contacts" },
-      { label: "Yatırımcıyım", href: "#investor" }
+      { label: "Fabrikayım", href: "#calculator" }
     ],
     calculator: {
       volumeLabel: "Yıllık tedarik hacmi",
@@ -379,12 +523,13 @@ const copy = {
       currentLabel: "Aracı marjı",
       savingsLabel: "Yıllık tasarrufunuz",
       ctaLabel: "Tam rapor",
+      liveLabel: "Canlı hesaplayıcı",
       steps: ["Hesapla", "Profil", "İletişim"],
       stepHeaders: ["Slider'ı sürükleyin", "Kimsiniz?", "Nereye?"],
       roleLabel: "Rol",
       roles: ["Alıcı", "Fabrika", "Bayi", "Yatırımcı"],
       countryLabel: "Ülke",
-      countries: ["Kazakistan", "Özbekistan", "Türkiye", "Rusya", "BAE", "Çin", "Diğer"],
+      countries: ["Kazakistan", "Özbekistan", "Türkiye", "Azerbaycan", "Rusya", "BAE", "Çin", "Diğer"],
       nameLabel: "İsim ve şirket",
       emailLabel: "Kurumsal e-posta",
       phoneLabel: "WhatsApp / telefon",
@@ -392,26 +537,25 @@ const copy = {
       back: "Geri",
       submit: "Gönder",
       successTitle: "Tamam.",
-      successText: "Tam rapor 24 saat içinde info@e-agro.pro adresine gelecek."
+      successText: "Tam rapor 24 saat içinde info@e-agro.pro adresine gelecek.",
+      ofProcurement: "yıllık tedarikten"
     },
     footer: {
       tagline: "Türk fabrikaları ile BDT/MENA alıcıları arasında bilgi aracısı.",
       copyright: "© 2026 E-AGRO PRO · TECHNOEXPORT LLC"
     },
-    heroCardRegion: "Türkiye / BDT / MENA",
+    heroCardRegion: "Türkiye / Türk dünyası",
     heroCardTitle: "Verified · Hard Goods",
-    corridorTitle: "Ticaret koridoru",
-    corridorCaption: "Türkiye → Almatı → Taşkent → Dubai → Riyad → Pekin",
-    corridorHint: "Düğüme gelin"
+    liveRfqLabel: "Canlı RFQ"
   }
 } as const;
 
-const anchors = ["how", "categories", "markets", "career", "contacts"];
+const anchors = ["how", "categories", "markets", "roadmap", "contacts"];
 
 const partnerLogos = [
   "Antalya Tarım", "BurdurAgri", "Konya Makine", "Almaty AgroTech",
   "Tashkent Harvest", "Bishkek Fields", "Adana Export", "Astana Grain",
-  "Izmir Drone", "Samarkand Co", "Bursa Implements", "Karaganda Co"
+  "Baku Trade", "Samarkand Co", "Bursa Implements", "Karaganda Co"
 ];
 
 // ============ Helpers ============
@@ -474,7 +618,7 @@ function LogoMarquee({ logos }: { logos: readonly string[] }) {
 
 type CorridorNode = { id: string; name: string; detail: string; cx: number; cy: number };
 
-function CorridorMap({ nodes, title, caption, hint }: { nodes: CorridorNode[]; title: string; caption: string; hint: string }) {
+function CorridorMap({ nodes, title, caption, hint, hubLabel }: { nodes: CorridorNode[]; title: string; caption: string; hint: string; hubLabel: string }) {
   const [active, setActive] = useState<string | null>(null);
   const pathD = `M ${nodes.map(n => `${n.cx},${n.cy}`).join(" L ")}`;
   return (
@@ -517,7 +661,7 @@ function CorridorMap({ nodes, title, caption, hint }: { nodes: CorridorNode[]; t
             transition={{ duration: 0.18 }}
             className="pointer-events-none absolute left-1/2 top-6 z-20 w-40 -translate-x-1/2 rounded-xl border border-agro-border bg-white p-3 text-left shadow-soft"
           >
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-agro-dark">{`HUB ${idx + 1}`}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-agro-dark">{`${hubLabel} ${idx + 1}`}</p>
             <p className="mt-1 text-sm font-extrabold text-agro-text">{node.name}</p>
             <p className="mt-1 text-xs leading-5 text-neutral-600">{node.detail}</p>
           </motion.div>
@@ -570,7 +714,7 @@ function SavingsCalculator({ lang, title, intro }: { lang: Lang; title: string; 
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-agro-green/12">
                 <Calculator className="h-4 w-4 text-agro-green" />
               </div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-agro-dark">Live calculator</p>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-agro-dark">{c.liveLabel}</p>
             </div>
 
             <label className="block">
@@ -605,6 +749,7 @@ function SavingsCalculator({ lang, title, intro }: { lang: Lang; title: string; 
             <div className="mt-6 rounded-2xl bg-agro-dark p-5 text-white sm:p-6">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">{c.savingsLabel}</p>
               <p className="mt-2 text-3xl font-extrabold sm:text-5xl">{formatCurrency(savings, lang)}</p>
+              <p className="mt-2 text-[10px] font-semibold text-white/60">≈ {Math.round((savings / volume) * 100)}% {c.ofProcurement}</p>
             </div>
           </FadeIn>
 
@@ -703,18 +848,15 @@ export default function CorporateSite() {
   const nav = useMemo(() => t.nav.map((label, index) => ({ label, href: `#${anchors[index]}` })), [t.nav]);
 
   const corridorNodes: CorridorNode[] = useMemo(() => [
-    { id: "ist", name: t.markets[0], detail: "Antalya · Bursa · İzmir hubs", cx: 80, cy: 230 },
-    { id: "alm", name: t.markets[1], detail: "Almaty · Astana operations", cx: 320, cy: 170 },
-    { id: "tas", name: t.markets[2], detail: "Tashkent · Samarkand corridor", cx: 430, cy: 220 },
-    { id: "mos", name: t.markets[4], detail: "CIS commercial gateway", cx: 250, cy: 90 },
-    { id: "dub", name: t.markets[6], detail: "MENA finance gateway", cx: 360, cy: 340 },
-    { id: "riy", name: t.markets[5], detail: "Saudi agri-procurement", cx: 480, cy: 360 },
-    { id: "bei", name: t.markets[7], detail: "China supply nodes", cx: 700, cy: 200 }
-  ], [t.markets]);
+    { id: "ist", name: t.corridorNodes.ist.name, detail: t.corridorNodes.ist.detail, cx: 90, cy: 270 },
+    { id: "bak", name: t.corridorNodes.bak.name, detail: t.corridorNodes.bak.detail, cx: 270, cy: 250 },
+    { id: "alm", name: t.corridorNodes.alm.name, detail: t.corridorNodes.alm.detail, cx: 470, cy: 170 },
+    { id: "tas", name: t.corridorNodes.tas.name, detail: t.corridorNodes.tas.detail, cx: 560, cy: 250 },
+    { id: "bis", name: t.corridorNodes.bis.name, detail: t.corridorNodes.bis.detail, cx: 690, cy: 220 }
+  ], [t.corridorNodes]);
 
-  const howIcons = [Search, ShieldCheck, Landmark];
+  const howIcons = [Search, ShieldCheck, Globe2];
   const categoryIcons = [Tractor, Droplets, Sprout, PackageOpen];
-  const careerIcons = [Briefcase, GraduationCap, Lightbulb, CalendarDays];
 
   return (
     <main className="min-h-screen bg-agro-bg pb-20 text-agro-text sm:pb-0">
@@ -786,7 +928,7 @@ export default function CorporateSite() {
               <a href="#calculator" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-agro-green px-7 py-4 text-sm font-extrabold text-white shadow-panel transition hover:shadow-glow sm:w-auto">
                 {t.primaryCta} <ArrowRight size={18} />
               </a>
-              <a href="#contacts" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-agro-border bg-white/90 px-7 py-4 text-sm font-extrabold text-agro-dark transition hover:border-agro-green sm:w-auto">
+              <a href="#calculator" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-agro-border bg-white/90 px-7 py-4 text-sm font-extrabold text-agro-dark transition hover:border-agro-green sm:w-auto">
                 {t.secondaryCta}
               </a>
             </div>
@@ -810,7 +952,7 @@ export default function CorporateSite() {
                   <p className="mt-1 text-sm font-extrabold sm:text-lg">{t.heroCardTitle}</p>
                 </div>
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6, duration: 0.6 }} className="absolute right-4 top-4 rounded-xl bg-agro-green px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white shadow-panel sm:text-xs">
-                  <span className="mr-1 inline-block h-1.5 w-1.5 animate-blink rounded-full bg-white" />Live RFQ
+                  <span className="mr-1 inline-block h-1.5 w-1.5 animate-blink rounded-full bg-white" />{t.liveRfqLabel}
                 </motion.div>
               </div>
             </motion.div>
@@ -861,7 +1003,6 @@ export default function CorporateSite() {
             <p className="mt-2 text-sm text-neutral-600 sm:text-base">{t.sections.categoriesSub}</p>
           </FadeIn>
 
-          {/* 4 category photo cards */}
           <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
             {t.categories.map(([title, ticket], i) => {
               const I = categoryIcons[i];
@@ -885,7 +1026,6 @@ export default function CorporateSite() {
             })}
           </div>
 
-          {/* Whitelist YES/NO */}
           <FadeIn delay={0.2}>
             <div className="mt-6 grid gap-4 sm:mt-8 sm:gap-5 md:grid-cols-2">
               <div className="rounded-2xl border border-agro-green/30 bg-agro-green/8 p-5 sm:p-6">
@@ -937,49 +1077,175 @@ export default function CorporateSite() {
 
       <SavingsCalculator lang={lang} title={t.sections.calculator} intro={t.sections.calculatorSub} />
 
-      {/* MARKETS */}
+      {/* MARKETS — Turkic + Global tiers */}
       <section id="markets" className="section-shell py-14 sm:py-20">
         <FadeIn className="mb-8 max-w-2xl sm:mb-10">
           <h2 className="text-2xl font-extrabold tracking-tight text-agro-text sm:text-3xl lg:text-4xl">{t.sections.markets}</h2>
+          <p className="mt-2 text-sm text-neutral-600 sm:text-base">{t.sections.marketsSub}</p>
         </FadeIn>
         <div className="grid gap-6 lg:grid-cols-[0.7fr_1.3fr] lg:gap-8">
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-1">
-            {t.markets.map(market => {
-              const flag = marketFlags[market] || "🌐";
-              const kpi = marketKpis[flag];
-              return (
-                <motion.div key={market} whileHover={{ x: 4, scale: 1.01 }} transition={{ type: "spring", stiffness: 240, damping: 18 }} className="flex items-center gap-3 rounded-xl border border-agro-border bg-white p-3 font-bold shadow-panel sm:p-4">
-                  <span className="text-xl leading-none sm:text-2xl">{flag}</span>
-                  <span className="min-w-0 truncate text-xs sm:text-sm">{market}</span>
-                  {kpi && <span className="ml-auto hidden text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-500 lg:inline">{kpi}</span>}
-                </motion.div>
-              );
-            })}
+          <div className="grid gap-5">
+            <div>
+              <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-agro-green/12 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-agro-dark sm:text-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-agro-green animate-pulse" />
+                {t.marketsTurkicTitle}
+              </p>
+              <div className="grid gap-2.5 sm:gap-3">
+                {t.marketsTurkic.map(market => {
+                  const flag = marketFlags[market] || "🌐";
+                  const kpi = marketKpis[flag];
+                  return (
+                    <motion.div key={market} whileHover={{ x: 4, scale: 1.01 }} transition={{ type: "spring", stiffness: 240, damping: 18 }} className="flex items-center gap-3 rounded-xl border-l-4 border-agro-green bg-white p-3 font-bold shadow-panel sm:p-4">
+                      <span className="text-xl leading-none sm:text-2xl">{flag}</span>
+                      <span className="min-w-0 flex-1 truncate text-xs sm:text-sm">{market}</span>
+                      {kpi && <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-agro-dark">{kpi}</span>}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-neutral-200 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-neutral-600 sm:text-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-neutral-400" />
+                {t.marketsGlobalTitle}
+              </p>
+              <div className="grid gap-2.5 sm:gap-3">
+                {t.marketsGlobal.map(market => {
+                  const flag = marketFlags[market] || "🌐";
+                  const kpi = marketKpis[flag];
+                  return (
+                    <motion.div key={market} whileHover={{ x: 4, scale: 1.01 }} transition={{ type: "spring", stiffness: 240, damping: 18 }} className="flex items-center gap-3 rounded-xl border-l-4 border-neutral-300 bg-white p-3 font-bold opacity-80 shadow-panel sm:p-4">
+                      <span className="text-xl leading-none sm:text-2xl">{flag}</span>
+                      <span className="min-w-0 flex-1 truncate text-xs sm:text-sm">{market}</span>
+                      {kpi && <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-500">{kpi}</span>}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
           <FadeIn>
-            <CorridorMap nodes={corridorNodes} title={t.corridorTitle} caption={t.corridorCaption} hint={t.corridorHint} />
+            <CorridorMap nodes={corridorNodes} title={t.corridorTitle} caption={t.corridor} hint={t.corridorHint} hubLabel={t.corridorHubLabel} />
           </FadeIn>
         </div>
       </section>
 
-      {/* ROADMAP */}
+      {/* ROADMAP — expanded */}
       <section id="roadmap" className="bg-white py-14 sm:py-20">
         <div className="section-shell">
           <FadeIn className="mb-8 max-w-2xl sm:mb-10">
-            <h2 className="text-2xl font-extrabold tracking-tight text-agro-text sm:text-3xl lg:text-4xl">{t.sections.roadmap}</h2>
+            <div className="inline-flex items-center gap-2 rounded-full bg-agro-green/12 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-agro-dark sm:text-xs">
+              <Rocket className="h-3.5 w-3.5" /> Roadmap
+            </div>
+            <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-agro-text sm:text-3xl lg:text-4xl">{t.sections.roadmap}</h2>
+            <p className="mt-2 text-sm text-neutral-600 sm:text-base">{t.sections.roadmapSub}</p>
+          </FadeIn>
+          <div className="relative">
+            <div className="pointer-events-none absolute left-0 right-0 top-[70px] hidden h-px bg-gradient-to-r from-agro-green/0 via-agro-green/60 to-agro-green/0 lg:block" />
+            <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
+              {t.roadmap.map((phase, i) => {
+                const active = phase.progress > 0;
+                return (
+                  <FadeIn key={phase.year} delay={i * 0.08} className="h-full">
+                    <motion.div
+                      whileHover={{ y: -8 }}
+                      transition={{ type: "spring", stiffness: 220, damping: 16 }}
+                      className={`hover-lift relative h-full overflow-hidden rounded-2xl border p-5 shadow-panel sm:p-6 ${
+                        active ? "border-agro-green bg-white" : "border-agro-border bg-agro-bg"
+                      }`}
+                    >
+                      <div className="mb-4 flex items-center justify-between">
+                        <p className={`text-2xl font-extrabold sm:text-3xl ${active ? "text-agro-green" : "text-neutral-500"}`}>{phase.year}</p>
+                        <span
+                          className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-extrabold ${
+                            phase.progress >= 0.5
+                              ? "bg-agro-green text-white"
+                              : phase.progress > 0
+                              ? "border-2 border-agro-green bg-white text-agro-dark"
+                              : "border-2 border-agro-border bg-white text-neutral-400"
+                          }`}
+                        >
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                      </div>
+                      <p className="text-base font-extrabold leading-snug sm:text-lg">{phase.phase}</p>
+                      <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-agro-green/12 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-agro-dark">
+                        {phase.tag}
+                      </span>
+                      <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${phase.progress * 100}%` }}
+                          viewport={{ once: true, margin: "-60px" }}
+                          transition={{ duration: 1.1, ease: "easeOut", delay: 0.2 + i * 0.06 }}
+                          className="h-full rounded-full bg-gradient-to-r from-agro-green to-agro-dark"
+                        />
+                      </div>
+                      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-agro-dark">{Math.round(phase.progress * 100)}%</p>
+                      <ul className="mt-4 grid gap-2 border-t border-agro-border pt-4">
+                        {phase.bullets.map((b: string) => (
+                          <li key={b} className="flex items-start gap-2 text-xs leading-5 text-neutral-700 sm:text-sm sm:leading-6">
+                            <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-agro-green" />
+                            <span>{b}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  </FadeIn>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* INVESTOR STRIP */}
+      <section id="investor" className="section-shell py-14 sm:py-20">
+        <FadeIn className="overflow-hidden rounded-3xl border border-agro-border bg-white p-6 shadow-panel sm:p-8 lg:p-10">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-10">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-agro-dark">{t.sections.investor}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {t.investorPills.map(p => (
+                  <span key={p} className="inline-flex items-center gap-2 rounded-full bg-agro-green/12 px-4 py-2 text-xs font-extrabold text-agro-dark sm:text-sm">
+                    <span className="h-2 w-2 rounded-full bg-agro-green" />{p}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <a href="mailto:info@e-agro.pro?subject=E-AGRO%20PRO%20Investor%20Deck" className="inline-flex items-center justify-center gap-2 rounded-xl bg-agro-dark px-7 py-4 text-sm font-extrabold text-white shadow-soft transition hover:bg-agro-green">
+              {t.investorCta} <ArrowRight size={18} />
+            </a>
+          </div>
+        </FadeIn>
+      </section>
+
+      {/* TEAM */}
+      <section id="team" className="bg-white py-14 sm:py-20">
+        <div className="section-shell">
+          <FadeIn className="mb-8 max-w-2xl sm:mb-10">
+            <h2 className="text-2xl font-extrabold tracking-tight text-agro-text sm:text-3xl lg:text-4xl">{t.sections.team}</h2>
           </FadeIn>
           <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {t.roadmap.map(([year, title], i) => {
-              const progress = roadmapProgress[i] ?? 0;
+            {t.team.map(([name, role], i) => {
+              const initials = name.split(" ").map(w => w[0]).slice(0, 2).join("");
+              const gradient = photos.team[i % photos.team.length];
               return (
-                <FadeIn key={year} delay={i * 0.08} className="h-full">
-                  <motion.div whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 220, damping: 16 }} className="hover-lift relative h-full rounded-2xl border border-agro-border bg-agro-bg p-5 sm:p-6">
-                    <p className="text-2xl font-extrabold text-agro-green sm:text-3xl">{year}</p>
-                    <div className="mt-4 mb-2 h-1.5 w-full overflow-hidden rounded-full bg-white">
-                      <motion.div initial={{ width: 0 }} whileInView={{ width: `${progress * 100}%` }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 1.1, ease: "easeOut", delay: 0.2 + i * 0.06 }} className="h-full rounded-full bg-gradient-to-r from-agro-green to-agro-dark" />
+                <FadeIn key={name} delay={i * 0.05}>
+                  <motion.div whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 220, damping: 16 }} className="hover-lift group relative h-full overflow-hidden rounded-2xl border border-agro-border bg-white p-5 shadow-panel">
+                    <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${gradient}`} />
+                    <div className="flex items-center gap-4">
+                      <div className={`flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} text-lg font-extrabold text-white shadow-glow`}>
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-base font-extrabold leading-tight">{name}</h3>
+                        <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-agro-dark">{role}</p>
+                      </div>
+                      <a href="#" aria-label="LinkedIn" className="ml-auto flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-agro-border bg-white text-agro-dark transition hover:border-agro-green hover:text-agro-green">
+                        <Linkedin className="h-4 w-4" />
+                      </a>
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-agro-dark">{Math.round(progress * 100)}%</p>
-                    <h3 className="mt-3 text-base font-extrabold leading-snug sm:text-lg">{title}</h3>
                   </motion.div>
                 </FadeIn>
               );
@@ -988,97 +1254,11 @@ export default function CorporateSite() {
         </div>
       </section>
 
-      {/* CAREER — E-AGRO PRO Carrier */}
-      <section id="career" className="section-shell py-14 sm:py-20">
-        <FadeIn className="mb-8 max-w-2xl sm:mb-10">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-agro-dark">Carrier</p>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-agro-text sm:text-3xl lg:text-4xl">{t.sections.career}</h2>
-          <p className="mt-2 text-sm text-neutral-600 sm:text-base">{t.sections.careerSub}</p>
-        </FadeIn>
-        <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {t.career.map(([title, text], i) => {
-            const I = careerIcons[i];
-            const gradients = [
-              "from-emerald-500 to-teal-600",
-              "from-sky-500 to-indigo-600",
-              "from-amber-500 to-orange-600",
-              "from-rose-500 to-pink-600"
-            ];
-            return (
-              <FadeIn key={title} delay={i * 0.06} className="h-full">
-                <motion.div whileHover={{ y: -8 }} transition={{ type: "spring", stiffness: 220, damping: 16 }} className="hover-lift group relative h-full overflow-hidden rounded-2xl border border-agro-border bg-white p-5 shadow-panel sm:p-6">
-                  <div className={`mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradients[i]} text-white shadow-glow`}>
-                    <I className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-base font-extrabold sm:text-lg">{title}</h3>
-                  <p className="mt-2 text-sm leading-5 text-neutral-600 sm:leading-6">{text}</p>
-                </motion.div>
-              </FadeIn>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* INVESTOR STRIP */}
-      <section id="investor" className="bg-white py-14 sm:py-20">
-        <div className="section-shell">
-          <FadeIn className="overflow-hidden rounded-3xl border border-agro-border bg-agro-bg p-6 shadow-panel sm:p-8 lg:p-10">
-            <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-10">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-agro-dark">{t.sections.investor}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {t.investorPills.map(p => (
-                    <span key={p} className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-extrabold text-agro-dark shadow-panel sm:text-sm">
-                      <span className="h-2 w-2 rounded-full bg-agro-green" />{p}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <a href="mailto:info@e-agro.pro?subject=E-AGRO%20PRO%20Investor%20Deck" className="inline-flex items-center justify-center gap-2 rounded-xl bg-agro-dark px-7 py-4 text-sm font-extrabold text-white shadow-soft transition hover:bg-agro-green">
-                {t.investorCta} <ArrowRight size={18} />
-              </a>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* TEAM */}
-      <section id="team" className="section-shell py-14 sm:py-20">
-        <FadeIn className="mb-8 max-w-2xl sm:mb-10">
-          <h2 className="text-2xl font-extrabold tracking-tight text-agro-text sm:text-3xl lg:text-4xl">{t.sections.team}</h2>
-        </FadeIn>
-        <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {t.team.map(([name, role], i) => {
-            const initials = name.split(" ").map(w => w[0]).slice(0, 2).join("");
-            const gradient = photos.team[i % photos.team.length];
-            return (
-              <FadeIn key={name} delay={i * 0.05}>
-                <motion.div whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 220, damping: 16 }} className="hover-lift group relative h-full overflow-hidden rounded-2xl border border-agro-border bg-white p-5 shadow-panel">
-                  <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${gradient}`} />
-                  <div className="flex items-center gap-4">
-                    <div className={`flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} text-lg font-extrabold text-white shadow-glow`}>
-                      {initials}
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-base font-extrabold leading-tight">{name}</h3>
-                      <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-agro-dark">{role}</p>
-                    </div>
-                    <a href="#" aria-label="LinkedIn" className="ml-auto flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-agro-border bg-white text-agro-dark transition hover:border-agro-green hover:text-agro-green">
-                      <Linkedin className="h-4 w-4" />
-                    </a>
-                  </div>
-                </motion.div>
-              </FadeIn>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section id="contacts" className="section-shell pb-14 sm:pb-20">
+      {/* FINAL CTA — 2 personas */}
+      <section id="contacts" className="section-shell py-14 sm:py-20">
         <FadeIn className="overflow-hidden rounded-3xl bg-agro-dark p-6 text-white shadow-soft sm:rounded-[28px] sm:p-10 lg:p-14">
           <h2 className="max-w-3xl text-2xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">{t.sections.finalTitle}</h2>
-          <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
+          <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4">
             {t.personas.map((p, i) => (
               <motion.a key={p.label} href={p.href} whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 220, damping: 16 }} className={`group flex items-center justify-between gap-3 rounded-2xl px-5 py-4 text-sm font-extrabold shadow-panel sm:px-6 sm:py-5 sm:text-base ${i === 0 ? "bg-agro-green text-white hover:shadow-glow" : "bg-white/10 text-white backdrop-blur hover:bg-white/20"}`}>
                 <span>{p.label}</span>
