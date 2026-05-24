@@ -615,18 +615,87 @@ function ScrollProgress() {
 }
 
 function LogoMarquee({ logos }: { logos: readonly string[] }) {
-  const doubled = [...logos, ...logos];
+  // Triplicate so manual scroll has runway in both directions and the auto-loop is seamless.
+  const tripled = [...logos, ...logos, ...logos];
+  const containerRef = useRef<HTMLDivElement>(null);
+  const userIdleTimer = useRef<number | null>(null);
+  const isPausedByUser = useRef(false);
+  const [hovered, setHovered] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    // Start in the middle copy so manual scroll has equal runway both ways.
+    const oneCopy = el.scrollWidth / 3;
+    el.scrollLeft = oneCopy;
+
+    let raf = 0;
+    let prev = performance.now();
+    const SPEED = 28; // px / second
+    const tick = (now: number) => {
+      const dt = (now - prev) / 1000;
+      prev = now;
+      if (!hovered && !isPausedByUser.current) {
+        el.scrollLeft += SPEED * dt;
+        // Keep within the middle copy by wrapping on the seam between copy 2 → copy 3.
+        if (el.scrollLeft >= oneCopy * 2) el.scrollLeft -= oneCopy;
+        if (el.scrollLeft <= 0) el.scrollLeft += oneCopy;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [hovered]);
+
+  const pauseFromUser = () => {
+    isPausedByUser.current = true;
+    if (userIdleTimer.current) window.clearTimeout(userIdleTimer.current);
+    userIdleTimer.current = window.setTimeout(() => {
+      isPausedByUser.current = false;
+    }, 1600);
+  };
+
+  // Drag-to-scroll for mouse (desktop): native scroll handles touch already.
+  const dragState = useRef({ down: false, startX: 0, startLeft: 0 });
+  const onMouseDown = (e: React.MouseEvent) => {
+    const el = containerRef.current;
+    if (!el) return;
+    dragState.current = { down: true, startX: e.clientX, startLeft: el.scrollLeft };
+    pauseFromUser();
+  };
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragState.current.down) return;
+    const el = containerRef.current;
+    if (!el) return;
+    el.scrollLeft = dragState.current.startLeft - (e.clientX - dragState.current.startX);
+  };
+  const stopDrag = () => {
+    dragState.current.down = false;
+  };
+
   return (
     <div className="border-y border-agro-border bg-white/70 py-5 sm:py-7">
-      <div className="relative overflow-hidden">
+      <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-agro-bg to-transparent sm:w-24" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-agro-bg to-transparent sm:w-24" />
-        <div className="marquee-track flex items-center gap-4 py-1 sm:gap-8">
-          {doubled.map((name, i) => {
+        <div
+          ref={containerRef}
+          className="no-scrollbar scroll-momentum flex select-none items-center gap-4 overflow-x-auto py-1 sm:gap-8"
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => { setHovered(false); stopDrag(); }}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={stopDrag}
+          onTouchStart={pauseFromUser}
+          onTouchMove={pauseFromUser}
+          onWheel={pauseFromUser}
+          style={{ cursor: dragState.current.down ? "grabbing" : "grab" }}
+        >
+          {tripled.map((name, i) => {
             const initials = name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
             const grad = partnerGradients[i % partnerGradients.length];
             return (
-              <div key={`${name}-${i}`} className="flex items-center gap-2.5 whitespace-nowrap rounded-xl border border-agro-border bg-white px-3 py-2 text-xs font-extrabold uppercase tracking-[0.1em] text-neutral-700 shadow-panel sm:gap-3 sm:px-4 sm:py-2.5 sm:text-sm">
+              <div key={`${name}-${i}`} className="flex flex-none items-center gap-2.5 whitespace-nowrap rounded-xl border border-agro-border bg-white px-3 py-2 text-xs font-extrabold uppercase tracking-[0.1em] text-neutral-700 shadow-panel sm:gap-3 sm:px-4 sm:py-2.5 sm:text-sm">
                 <span className={`flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-br ${grad} text-[10px] font-extrabold tracking-normal text-white shadow-glow sm:h-8 sm:w-8 sm:text-xs`}>
                   {initials}
                 </span>

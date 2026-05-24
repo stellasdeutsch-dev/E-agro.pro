@@ -61,6 +61,19 @@ body {
   animation-play-state: paused;
 }
 
+/* Hide scrollbar for the auto + manual scroll carousel */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.scroll-momentum {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
 .corridor-path {
   stroke-dasharray: 8 10;
   animation: dash 18s linear infinite;
