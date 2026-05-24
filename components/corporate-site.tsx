@@ -27,6 +27,11 @@ import {
 
 type Lang = "tr" | "en" | "ru";
 
+// Prefix local public assets with basePath (set at build time by next.config.mjs).
+// Required because Next/Image with unoptimized:true + output:export does NOT auto-prepend basePath.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const asset = (p: string) => `${BASE_PATH}${p}`;
+
 const UNSPLASH = (id: string, w = 800) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=75`;
 
@@ -80,9 +85,11 @@ const copy = {
   ru: {
     nav: ["Как работает", "Категории", "Рынки", "Roadmap", "Контакты"],
     cta: "Связаться",
-    heroBadge: "MVP Live · Алматы и Анталья",
-    heroTitle: "Тракторы напрямую с турецких заводов. На 40% дешевле.",
-    heroSubline: "Проверяем завод. Вы платите напрямую по SWIFT. Без посредников.",
+    heroBadge: "MVP Live · Алматы и Анталья · Seed Open",
+    heroBrand: "e-Agro PRO · Информационный посредник",
+    heroTitle: "Глобальная цепочка агропоставок",
+    heroSubline: "Цифровая B2B-экосистема для прямого импорта. Турецкие заводы → СНГ и MENA. Без посредников, рисков и переплат.",
+    heroMission: "Миссия: сделать агробизнес прозрачным, технологичным и доступным.",
     primaryCta: "Узнать вашу цену",
     secondaryCta: "Я завод",
     stickyCta: "Узнать вашу цену",
@@ -237,9 +244,11 @@ const copy = {
   en: {
     nav: ["How it works", "Categories", "Markets", "Roadmap", "Contact"],
     cta: "Contact",
-    heroBadge: "MVP Live · Almaty & Antalya",
-    heroTitle: "Tractors direct from Turkish factories. 40% cheaper.",
-    heroSubline: "We verify the factory. You pay direct via SWIFT. No intermediaries.",
+    heroBadge: "MVP Live · Almaty & Antalya · Seed Open",
+    heroBrand: "e-Agro PRO · Information Intermediary",
+    heroTitle: "Global agri-supply chain",
+    heroSubline: "Digital B2B ecosystem for direct import. Turkish factories → CIS & MENA. No intermediaries, no risk, no markups.",
+    heroMission: "Mission: make agribusiness transparent, technological, and accessible.",
     primaryCta: "Get your price",
     secondaryCta: "I'm a factory",
     stickyCta: "Get your price",
@@ -394,9 +403,11 @@ const copy = {
   tr: {
     nav: ["Nasıl çalışır", "Kategoriler", "Pazarlar", "Yol Haritası", "İletişim"],
     cta: "İletişim",
-    heroBadge: "MVP Yayında · Almatı & Antalya",
-    heroTitle: "Traktörler doğrudan Türk fabrikalarından. %40 daha ucuz.",
-    heroSubline: "Fabrikayı biz doğrularız. Ödemeyi siz doğrudan SWIFT ile yaparsınız. Aracısız.",
+    heroBadge: "MVP Yayında · Almatı & Antalya · Seed Açık",
+    heroBrand: "e-Agro PRO · Bilgi Aracısı",
+    heroTitle: "Global tarım tedarik zinciri",
+    heroSubline: "Doğrudan ithalat için dijital B2B ekosistem. Türk fabrikalar → BDT ve MENA. Aracısız, risksiz, marjsız.",
+    heroMission: "Misyonumuz: tarımı şeffaf, teknolojik ve erişilebilir kılmak.",
     primaryCta: "Fiyatınızı öğrenin",
     secondaryCta: "Fabrikayım",
     stickyCta: "Fiyatınızı öğrenin",
@@ -552,6 +563,15 @@ const copy = {
 
 const anchors = ["how", "categories", "markets", "roadmap", "contacts"];
 
+const partnerGradients = [
+  "from-emerald-500 to-teal-600",
+  "from-amber-500 to-orange-600",
+  "from-sky-500 to-indigo-600",
+  "from-rose-500 to-pink-600",
+  "from-violet-500 to-purple-600",
+  "from-lime-500 to-green-600"
+];
+
 const partnerLogos = [
   "Antalya Tarım", "BurdurAgri", "Konya Makine", "Almaty AgroTech",
   "Tashkent Harvest", "Bishkek Fields", "Adana Export", "Astana Grain",
@@ -601,13 +621,19 @@ function LogoMarquee({ logos }: { logos: readonly string[] }) {
       <div className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-agro-bg to-transparent sm:w-24" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-agro-bg to-transparent sm:w-24" />
-        <div className="marquee-track flex items-center gap-6 py-1 sm:gap-12">
-          {doubled.map((name, i) => (
-            <div key={`${name}-${i}`} className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-agro-border bg-white px-4 py-2 text-xs font-extrabold uppercase tracking-[0.12em] text-neutral-700 shadow-panel sm:px-6 sm:py-2.5 sm:text-sm">
-              <Sprout className="h-3.5 w-3.5 text-agro-green" />
-              {name}
-            </div>
-          ))}
+        <div className="marquee-track flex items-center gap-4 py-1 sm:gap-8">
+          {doubled.map((name, i) => {
+            const initials = name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+            const grad = partnerGradients[i % partnerGradients.length];
+            return (
+              <div key={`${name}-${i}`} className="flex items-center gap-2.5 whitespace-nowrap rounded-xl border border-agro-border bg-white px-3 py-2 text-xs font-extrabold uppercase tracking-[0.1em] text-neutral-700 shadow-panel sm:gap-3 sm:px-4 sm:py-2.5 sm:text-sm">
+                <span className={`flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-gradient-to-br ${grad} text-[10px] font-extrabold tracking-normal text-white shadow-glow sm:h-8 sm:w-8 sm:text-xs`}>
+                  {initials}
+                </span>
+                {name}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -866,7 +892,7 @@ export default function CorporateSite() {
       <header className="glass-nav fixed left-0 right-0 top-0 z-50">
         <div className="section-shell flex h-16 items-center justify-between gap-3 sm:h-20 sm:gap-5">
           <a href="#" className="flex items-center">
-            <Image src="/eagro-logo.png" alt="E-AGRO PRO" width={145} height={60} priority className="h-9 w-auto object-contain sm:h-12" />
+            <Image src={asset("/eagro-logo.png")} alt="E-AGRO PRO" width={145} height={60} priority className="h-9 w-auto object-contain sm:h-12" />
           </a>
           <nav className="hidden items-center gap-6 text-sm font-semibold text-neutral-800 lg:flex">
             {nav.map(item => (
@@ -903,7 +929,7 @@ export default function CorporateSite() {
       {/* HERO */}
       <section className="relative overflow-hidden pt-20 sm:pt-28">
         <div className="absolute inset-0 opacity-[0.18]">
-          <Image src="/reference-background.png" alt="" fill priority className="object-cover object-top" />
+          <Image src={asset("/reference-background.png")} alt="" fill priority className="object-cover object-top" />
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-white via-white/96 to-white/72" />
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.4 }} className="absolute -top-12 -right-12 h-72 w-72 rounded-full bg-agro-green/12 blur-3xl" />
@@ -918,11 +944,15 @@ export default function CorporateSite() {
               {t.heroBadge}
             </motion.div>
 
-            <h1 className="mt-4 max-w-3xl break-words text-[1.75rem] font-extrabold leading-[1.08] tracking-tight text-agro-text sm:mt-5 sm:text-5xl lg:text-[3.5rem]">
+            <p className="mt-4 text-xs font-bold uppercase tracking-[0.18em] text-agro-dark sm:mt-5 sm:text-sm">{t.heroBrand}</p>
+
+            <h1 className="mt-2 max-w-3xl break-words text-[2rem] font-extrabold leading-[1.05] tracking-tight text-agro-text sm:mt-3 sm:text-5xl lg:text-[3.75rem]">
               {t.heroTitle}
             </h1>
 
             <p className="mt-4 max-w-2xl text-sm leading-6 text-neutral-700 sm:mt-5 sm:text-base sm:leading-7">{t.heroSubline}</p>
+
+            <p className="mt-3 max-w-2xl text-xs italic text-neutral-500 sm:text-sm">{t.heroMission}</p>
 
             <div className="mt-6 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:items-center">
               <a href="#calculator" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-agro-green px-7 py-4 text-sm font-extrabold text-white shadow-panel transition hover:shadow-glow sm:w-auto">
@@ -945,7 +975,7 @@ export default function CorporateSite() {
           <FadeIn className="relative min-w-0">
             <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="overflow-hidden rounded-[24px] border border-white/80 bg-white/70 p-2 shadow-soft backdrop-blur sm:p-3">
               <div className="relative aspect-[1.16] overflow-hidden rounded-[20px]">
-                <Image src="/hero-machinery.png" alt="Agricultural machinery" fill priority className="object-cover" />
+                <Image src={asset("/hero-machinery.png")} alt="Agricultural machinery" fill priority className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/24 to-transparent" />
                 <div className="absolute bottom-4 left-4 rounded-2xl bg-white/90 p-3 shadow-panel backdrop-blur sm:p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-agro-dark sm:text-xs">{t.heroCardRegion}</p>
@@ -1199,27 +1229,6 @@ export default function CorporateSite() {
         </div>
       </section>
 
-      {/* INVESTOR STRIP */}
-      <section id="investor" className="section-shell py-14 sm:py-20">
-        <FadeIn className="overflow-hidden rounded-3xl border border-agro-border bg-white p-6 shadow-panel sm:p-8 lg:p-10">
-          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-10">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-agro-dark">{t.sections.investor}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {t.investorPills.map(p => (
-                  <span key={p} className="inline-flex items-center gap-2 rounded-full bg-agro-green/12 px-4 py-2 text-xs font-extrabold text-agro-dark sm:text-sm">
-                    <span className="h-2 w-2 rounded-full bg-agro-green" />{p}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <a href="mailto:info@e-agro.pro?subject=E-AGRO%20PRO%20Investor%20Deck" className="inline-flex items-center justify-center gap-2 rounded-xl bg-agro-dark px-7 py-4 text-sm font-extrabold text-white shadow-soft transition hover:bg-agro-green">
-              {t.investorCta} <ArrowRight size={18} />
-            </a>
-          </div>
-        </FadeIn>
-      </section>
-
       {/* TEAM */}
       <section id="team" className="bg-white py-14 sm:py-20">
         <div className="section-shell">
@@ -1273,7 +1282,7 @@ export default function CorporateSite() {
       <footer className="border-t border-agro-border bg-white">
         <div className="section-shell flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:py-8">
           <div className="flex items-center gap-4">
-            <Image src="/eagro-logo.png" alt="E-AGRO PRO" width={120} height={50} className="h-8 w-auto object-contain sm:h-10" />
+            <Image src={asset("/eagro-logo.png")} alt="E-AGRO PRO" width={120} height={50} className="h-8 w-auto object-contain sm:h-10" />
             <p className="hidden text-xs leading-5 text-neutral-600 sm:block sm:max-w-xs">{t.footer.tagline}</p>
           </div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs leading-6 text-neutral-700 sm:text-sm">

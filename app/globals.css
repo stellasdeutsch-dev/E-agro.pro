@@ -99,7 +99,8 @@ section[id] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  /* Keep marquee always animating — brand-presence carousel, not user motion */
   .marquee-track {
-    animation: none !important;
+    animation: marquee 38s linear infinite !important;
   }
 }
